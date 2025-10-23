@@ -1,5 +1,3 @@
-"""Асинхронный хелпер для работы с БД и управлением сессиями."""
-
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 
@@ -41,7 +39,7 @@ class AsyncDatabaseHelper:
 
     @asynccontextmanager
     async def session_only(self) -> AsyncGenerator[AsyncSession, None]:
-        """Контекстный менеджер для работы с сессией без автоматического коммита."""
+        """Контекстный менеджер для работы с сессией"""
         async with self.async_session_factory() as session:
             try:
                 yield session
