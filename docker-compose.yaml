@@ -1,0 +1,48 @@
+services:
+  app:
+    build: .
+    command: /app/scripts/start-main.sh
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      - DB_URL=postgresql://postgres:admin@postgres:5432/organizations_db
+      - ADMIN_DB_URL=postgresql://postgres:admin@postgres:5432/postgres
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./logs:/app/logs
+      - ./app/infrastructure/db/postgres/migrations/versions:/app/app/infrastructure/db/postgres/migrations/versions  
+    restart: unless-stopped
+    networks:
+      - orgs-network
+
+  postgres:
+    image: postgres:15-alpine
+    env_file:
+      - .env
+    environment:
+      - POSTGRES_USER=postgres  
+      - POSTGRES_PASSWORD=admin
+      - POSTGRES_DB=organizations_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    networks:
+      - orgs-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d organizations_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  orgs-network:
+    external: true
+
+volumes:
+  postgres_data:
