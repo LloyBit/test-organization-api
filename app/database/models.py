@@ -2,6 +2,7 @@
 from uuid import uuid4
 from sqlalchemy import Column, ForeignKey, String, Table, UUID, Float
 from sqlalchemy.orm import relationship, declarative_base
+from geoalchemy2 import Geometry
 
 Base = declarative_base()
 
@@ -35,8 +36,7 @@ class Building(Base):
     __tablename__ = "buildings"
     id = Column(UUID, primary_key=True, default=uuid4)
     address = Column(String, nullable=False)
-    latitude = Column(Float, nullable=True)
-    longitude = Column(Float, nullable=True)
+    location = Column(Geometry(geometry_type='POINT', srid=4326)) 
     
     organizations = relationship("Organization", back_populates="building")
 
