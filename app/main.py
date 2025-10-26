@@ -4,8 +4,8 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from app.config import Settings
 
-from app.api import router as organizations_router
-
+from app.presentation.api import router as organizations_router
+from app.presentation.middleware import AuthMiddleware
 from app.service import OrganizationsService
 from app.database.repository import OrganizationsRepository
 from app.database.db_helper import AsyncDatabaseHelper
@@ -29,6 +29,9 @@ async def lifespan(app: FastAPI):
 
     
 app = FastAPI(title="QR-Blockchain Server", version="1.0.0", lifespan=lifespan)
+
+# Middleware для аутентификации
+app.add_middleware(AuthMiddleware)
 
 # Подключаем предварительно собранные роуты
 app.include_router(organizations_router)
