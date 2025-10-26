@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 set -e
 
-# Запуск миграций
+
+
+# Миграции
 echo "Запуск миграций..."
 
-# Устанавливаем PYTHONPATH 
 export PYTHONPATH="$(dirname "$(dirname "$0")")"
 
 if alembic upgrade head; then
