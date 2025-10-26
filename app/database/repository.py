@@ -80,7 +80,7 @@ class OrganizationsRepository:
             result = await session.execute(select(Organization).where(Organization.id == organization_id))
             return result.scalar_one_or_none()
         
-    async def organisations_by_activity_type(self, activity_id: UUID):
+    async def organizations_by_activity_type(self, activity_id: UUID):
         """Получить организации по типу деятельности с поиском по дереву деятельностей"""
         async with self.db_helper.session_only() as session:
             # Используем рекурсивный CTE для поиска всех дочерних деятельностей
@@ -118,7 +118,7 @@ class OrganizationsRepository:
                 
             return organizations
         
-    async def organisation_by_name(self, name: str):
+    async def organization_by_name(self, name: str):
         """Получить организацию по имени"""
         async with self.db_helper.session_only() as session:
             result = await session.execute(select(Organization).where(Organization.name == name))

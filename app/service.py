@@ -28,8 +28,8 @@ class OrganizationsService:
         
     async def get_organizations_by_activity_type(self, activity_id: UUID):
         """Получить организации по типу активности"""
-        return await self.repository.organisations_by_activity_type(activity_id)
+        return await self.repository.organizations_by_activity_type(activity_id)
         
     async def get_organization_by_name(self, name: str):
         """Получить организацию по имени"""
-        return await self.repository.organisation_by_name(name)
+        return await self.repository.organization_by_name(name)
