@@ -14,9 +14,13 @@ class OrganizationsService:
         """Получить организации по активности"""
         return await self.repository.organizations_by_activity(activity_id)
         
-    async def get_organizations_in_area(self, ):
-        """Получить организации в радиусе от точки"""
-        return await self.repository.organizations_in_area(...)
+    async def get_organizations_in_circle(self, latitude: float, longitude: float, radius: float):
+        """Получить организации в радиусе от указанной точки"""
+        return await self.repository.organizations_in_circle(latitude, longitude, radius)
+        
+    async def get_organizations_in_rectangle(self, center_latitude: float, center_longitude: float, width: float, height: float):
+        """Получить организации в прямоугольной области от указанной точки"""
+        return await self.repository.organizations_in_rectangle(center_latitude, center_longitude, width, height)
         
     async def get_organization_by_id(self, organization_id: UUID):
         """Получить организацию по ID"""
