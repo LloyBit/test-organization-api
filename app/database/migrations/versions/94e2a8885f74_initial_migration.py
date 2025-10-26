@@ -26,9 +26,18 @@ def upgrade() -> None:
     sa.Column('id', sa.UUID(), nullable=False),
     sa.Column('name', sa.String(), nullable=False),
     sa.Column('parent_id', sa.UUID(), nullable=True),
+    sa.Column('level', sa.Integer(), nullable=False, server_default='1'),  # Добавлено поле level
     sa.ForeignKeyConstraint(['parent_id'], ['activities.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
+    
+    # Добавляем ограничение на максимальный уровень
+    op.execute("""
+        ALTER TABLE activities 
+        ADD CONSTRAINT check_max_level 
+        CHECK (level <= 3)
+    """)
+    
     op.create_table('buildings',
     sa.Column('id', sa.UUID(), nullable=False),
     sa.Column('address', sa.String(), nullable=False),
@@ -70,4 +79,7 @@ def downgrade() -> None:
     op.drop_table('organizations')
     op.drop_index('idx_buildings_location', table_name='buildings')
     op.drop_table('buildings')
+    
+    # Удаляем ограничение перед удалением таблицы
+    op.execute("ALTER TABLE activities DROP CONSTRAINT IF EXISTS check_max_level")
     op.drop_table('activities')

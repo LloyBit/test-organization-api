@@ -1,6 +1,6 @@
 """ORM для Postgres"""
 from uuid import uuid4
-from sqlalchemy import Column, ForeignKey, String, Table, UUID, Float
+from sqlalchemy import Column, ForeignKey, String, Table, UUID, Integer
 from sqlalchemy.orm import relationship, declarative_base
 from geoalchemy2 import Geometry
 
@@ -46,6 +46,7 @@ class Activity(Base):
     id = Column(UUID, primary_key=True, default=uuid4)
     name = Column(String, nullable=False)
     parent_id = Column(UUID, ForeignKey("activities.id"), nullable=True)
+    level = Column(Integer, nullable=False, default=1)
     
     children = relationship("Activity", backref="parent", remote_side=[id])
     organizations = relationship("Organization", secondary=organization_activities, back_populates="activities")
