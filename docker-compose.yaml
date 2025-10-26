@@ -20,7 +20,7 @@ services:
       - orgs-network
 
   postgres:
-    image: postgres:15-alpine
+    image: postgis/postgis:16-3.4
     env_file:
       - .env
     environment:
