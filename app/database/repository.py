@@ -81,8 +81,42 @@ class OrganizationsRepository:
             return result.scalar_one_or_none()
         
     async def organisations_by_activity_type(self, activity_id: UUID):
-        # TODO: Реализовать поиск по дереву деятельностей
-        pass
+        """Получить организации по типу деятельности с поиском по дереву деятельностей"""
+        async with self.db_helper.session_only() as session:
+            # Используем рекурсивный CTE для поиска всех дочерних деятельностей
+            cte_query = text("""
+                WITH RECURSIVE activity_tree AS (
+                    -- Базовый случай: начальная деятельность
+                    SELECT id, name, parent_id, level
+                    FROM activities 
+                    WHERE id = :activity_id
+                    
+                    UNION ALL
+                    
+                    -- Рекурсивный случай: все дочерние деятельности
+                    SELECT a.id, a.name, a.parent_id, a.level
+                    FROM activities a
+                    INNER JOIN activity_tree at ON a.parent_id = at.id
+                )
+                SELECT DISTINCT o.id, o.name, o.building_id
+                FROM organizations o
+                INNER JOIN organization_activities oa ON o.id = oa.organization_id
+                INNER JOIN activity_tree at ON oa.activity_id = at.id
+            """)
+            
+            result = await session.execute(cte_query, {"activity_id": activity_id})
+            rows = result.fetchall()
+            
+            # Преобразуем результат в объекты Organization
+            organizations = []
+            for row in rows:
+                org = Organization()
+                org.id = row.id
+                org.name = row.name
+                org.building_id = row.building_id
+                organizations.append(org)
+                
+            return organizations
         
     async def organisation_by_name(self, name: str):
         """Получить организацию по имени"""
