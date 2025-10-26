@@ -20,7 +20,7 @@ class OrganizationsService:
         
     async def get_organization_by_id(self, organization_id: UUID):
         """Получить организацию по ID"""
-        return await self.repository.organizations_by_id(organization_id)
+        return await self.repository.organization_by_id(organization_id)
         
     async def get_organizations_by_activity_type(self, activity_id: UUID):
         """Получить организации по типу активности"""
