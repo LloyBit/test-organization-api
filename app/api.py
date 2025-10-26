@@ -9,8 +9,6 @@ router = APIRouter(prefix="/organizations")
 def get_service(request: Request) -> OrganizationsService:
     return request.app.state.service
 
-
-
 @router.get("/by-building/{building_id}")
 async def get_organizations_by_building(
     building_id: UUID,
@@ -27,15 +25,26 @@ async def get_organizations_by_activity(
     """Получить организации по активности"""
     return await service.get_organizations_by_activity(activity_id)
 
-@router.get("/in-area")
-async def get_organizations_in_area(
+@router.get("/in-circle")
+async def get_organizations_in_circle(
     latitude: float = Query(..., description="Широта"),
     longitude: float = Query(..., description="Долгота"),
     radius: float = Query(..., description="Радиус поиска в метрах"),
     service: OrganizationsService = Depends(get_service)
 ):
     """Получить организации в радиусе от указанной точки"""
-    return await service.get_organizations_in_area(latitude, longitude, radius)
+    return await service.get_organizations_in_circle(latitude, longitude, radius)
+
+@router.get("/in-rectangle")
+async def get_organizations_in_rectangle(
+    center_latitude: float = Query(..., description="Широта центра"),
+    center_longitude: float = Query(..., description="Долгота центра"),
+    width: float = Query(..., description="Ширина в метрах"),
+    height: float = Query(..., description="Высота в метрах"),
+    service: OrganizationsService = Depends(get_service)
+):
+    """Получить организации в прямоугольной области от указанной точки"""
+    return await service.get_organizations_in_rectangle(center_latitude, center_longitude, width, height)
 
 @router.get("/by-id/{organization_id}")
 async def get_organization_by_id(
