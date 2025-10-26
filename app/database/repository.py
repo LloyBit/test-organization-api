@@ -4,6 +4,7 @@ from sqlalchemy import select, func, text
 from sqlalchemy.orm import joinedload
 from uuid import UUID
 from typing import List, Optional
+import math
 
 class OrganizationsRepository:
     def __init__(self, db_helper: AsyncDatabaseHelper):
@@ -29,8 +30,12 @@ class OrganizationsRepository:
         """Получить организации в радиусе от указанной точки"""
         async with self.db_helper.session_only() as session:
             center_point = self._create_point(latitude, longitude)
+            
+            # Преобразуем радиус из метров в градусы с учетом широты
+            radius_in_degrees = radius / (111320.0 * math.cos(math.radians(latitude)))
+            
             query = self._build_organizations_with_building_query().where(
-                func.ST_DWithin(Building.location, center_point, radius)
+                func.ST_DWithin(Building.location, center_point, radius_in_degrees)
             )
             
             result = await session.execute(query)
@@ -72,7 +77,7 @@ class OrganizationsRepository:
         """Создать прямоугольник по центру и размерам в метрах"""
         # Преобразуем метры в градусы
         lat_degrees = height / 111320.0
-        lon_degrees = width / (111320.0 * func.cos(func.radians(center_latitude)))
+        lon_degrees = width / (111320.0 * math.cos(math.radians(center_latitude)))
         
         # Вычисляем границы прямоугольника
         min_lat = center_latitude - lat_degrees / 2
@@ -89,11 +94,3 @@ class OrganizationsRepository:
             .join(Building, Organization.building_id == Building.id)
             .options(joinedload(Organization.building))
         )
-    
-    def _meters_to_degrees(self, meters: float, latitude: float = None):
-        """Преобразовать метры в градусы"""
-        lat_degrees = meters / 111320.0
-        if latitude is not None:
-            lon_degrees = meters / (111320.0 * func.cos(func.radians(latitude)))
-            return lat_degrees, lon_degrees
-        return lat_degrees
