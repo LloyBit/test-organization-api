@@ -14,7 +14,7 @@ services:
         condition: service_healthy
     volumes:
       - ./logs:/app/logs
-      - ./app/infrastructure/db/postgres/migrations/versions:/app/app/infrastructure/db/postgres/migrations/versions  
+      - ./app/database/migrations/versions:/app/app/database/migrations/versions  
     restart: unless-stopped
     networks:
       - orgs-network
@@ -42,7 +42,7 @@ services:
 
 networks:
   orgs-network:
-    external: true
+    driver: bridge
 
 volumes:
   postgres_data:
