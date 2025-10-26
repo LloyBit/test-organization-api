@@ -29,13 +29,15 @@ class OrganizationsRepository:
     async def organizations_in_circle(self, latitude: float, longitude: float, radius: float):
         """Получить организации в радиусе от указанной точки"""
         async with self.db_helper.session_only() as session:
-            center_point = self._create_point(latitude, longitude)
+            center_point = func.ST_SetSRID(func.ST_MakePoint(longitude, latitude), 4326)
             
-            # Преобразуем радиус из метров в градусы с учетом широты
-            radius_in_degrees = radius / (111320.0 * math.cos(math.radians(latitude)))
-            
+            # Используем ST_DWithin с правильными единицами
             query = self._build_organizations_with_building_query().where(
-                func.ST_DWithin(Building.location, center_point, radius_in_degrees)
+                func.ST_DWithin(
+                    func.ST_Transform(Building.location, 3857), 
+                    func.ST_Transform(center_point, 3857),       
+                    radius  # радиус в метрах
+                )
             )
             
             result = await session.execute(query)
@@ -44,9 +46,29 @@ class OrganizationsRepository:
     async def organizations_in_rectangle(self, center_latitude: float, center_longitude: float, width: float, height: float):
         """Получить организации в прямоугольной области от указанной точки"""
         async with self.db_helper.session_only() as session:
-            rectangle = self._create_rectangle(center_latitude, center_longitude, width, height)
+            # Создаем центр в Web Mercator проекции
+            center_point = func.ST_Transform(
+                func.ST_SetSRID(func.ST_MakePoint(center_longitude, center_latitude), 4326),
+                3857
+            )
+            
+            # Создаем прямоугольник в Web Mercator (единицы - метры)
+            half_width = width / 2
+            half_height = height / 2
+            
+            rectangle = func.ST_MakeEnvelope(
+                func.ST_X(center_point) - half_width,
+                func.ST_Y(center_point) - half_height,
+                func.ST_X(center_point) + half_width,
+                func.ST_Y(center_point) + half_height,
+                3857
+            )
+            
             query = self._build_organizations_with_building_query().where(
-                func.ST_Within(Building.location, rectangle)
+                func.ST_Within(
+                    func.ST_Transform(Building.location, 3857),
+                    rectangle
+                )
             )
             
             result = await session.execute(query)
@@ -68,25 +90,7 @@ class OrganizationsRepository:
             result = await session.execute(select(Organization).where(Organization.name == name))
             return result.scalar_one_or_none()
 
-    # Приватные методы
-    def _create_point(self, latitude: float, longitude: float):
-        """Создать точку с SRID 4326"""
-        return func.ST_SetSRID(func.ST_MakePoint(longitude, latitude), 4326)
-    
-    def _create_rectangle(self, center_latitude: float, center_longitude: float, width: float, height: float):
-        """Создать прямоугольник по центру и размерам в метрах"""
-        # Преобразуем метры в градусы
-        lat_degrees = height / 111320.0
-        lon_degrees = width / (111320.0 * math.cos(math.radians(center_latitude)))
-        
-        # Вычисляем границы прямоугольника
-        min_lat = center_latitude - lat_degrees / 2
-        max_lat = center_latitude + lat_degrees / 2
-        min_lon = center_longitude - lon_degrees / 2
-        max_lon = center_longitude + lon_degrees / 2
-        
-        return func.ST_MakeEnvelope(min_lon, min_lat, max_lon, max_lat, 4326)
-    
+    # Приватные методы     
     def _build_organizations_with_building_query(self):
         """Создать базовый запрос для организаций с загрузкой зданий"""
         return (
