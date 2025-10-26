@@ -1,4 +1,3 @@
-# app/database/repository.py
 from app.database.db_helper import AsyncDatabaseHelper
 from app.database.models import Organization, Building, organization_activities
 from sqlalchemy import select, func, text
