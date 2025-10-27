@@ -6,8 +6,8 @@ from app.config import Settings
 
 from app.presentation.api import router as organizations_router
 from app.presentation.middleware import AuthMiddleware
-from app.service import OrganizationsService
-from app.database.repository import OrganizationsRepository
+from app.services.organizations import OrganizationsService
+from app.database.repositories.organisations import OrganizationsRepository
 from app.database.db_helper import AsyncDatabaseHelper
 
 settings = Settings()
