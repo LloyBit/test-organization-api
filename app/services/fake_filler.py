@@ -149,11 +149,6 @@ class FakeFiller():
         for i, organization in enumerate(created_organizations[:5]):
             print(f"   {i+1}. {organization.id}")
         
-        # Выводим первые 5 UUID телефонов
-        print("📞 Примеры UUID телефонов:")
-        for i, phone in enumerate(organization_phones[:5]):
-            print(f"   {i+1}. {phone.id}")
-        
         return created_organizations
 
     async def clear_database(self):
@@ -178,10 +173,6 @@ class FakeFiller():
             organizations = await self.create_organizations(buildings, activities, organizations_count)
             
             print(f"\n✅ Заполнение базы данных завершено!")
-            print(f"📊 Статистика:")
-            print(f"   - Зданий: {len(buildings)}")
-            print(f"   - Видов деятельности: {len(activities)}")
-            print(f"   - Организаций: {len(organizations)}")
             
         except Exception as e:
             print(f"❌ Ошибка при заполнении базы данных: {e}")
