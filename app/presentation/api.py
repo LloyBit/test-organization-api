@@ -1,15 +1,16 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
-from app.service import OrganizationsService
+from app.services.organizations import OrganizationsService
+from app.schemas import OrganizationResponse
 from fastapi import Request
 from uuid import UUID
-from typing import List, Optional
+from typing import List
 
 router = APIRouter(prefix="/organizations")
 
 def get_service(request: Request) -> OrganizationsService:
     return request.app.state.service
 
-@router.get("/by-building/{building_id}")
+@router.get("/by-building/{building_id}", response_model=List[OrganizationResponse])
 async def get_organizations_by_building(
     building_id: UUID,
     service: OrganizationsService = Depends(get_service)
@@ -46,7 +47,7 @@ async def get_organizations_in_rectangle(
     """Получить организации в прямоугольной области от указанной точки"""
     return await service.get_organizations_in_rectangle(center_latitude, center_longitude, width, height)
 
-@router.get("/by-id/{organization_id}")
+@router.get("/by-id/{organization_id}", response_model=OrganizationResponse)
 async def get_organization_by_id(
     organization_id: UUID,
     service: OrganizationsService = Depends(get_service)
@@ -65,7 +66,7 @@ async def get_organizations_by_activity_type(
     """Получить организации по типу активности"""
     return await service.get_organizations_by_activity_type(activity_id)
 
-@router.get("/by-name/{name}")
+@router.get("/by-name/{name}", response_model=OrganizationResponse)
 async def get_organization_by_name(
     name: str,
     service: OrganizationsService = Depends(get_service)
