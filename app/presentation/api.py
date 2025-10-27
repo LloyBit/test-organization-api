@@ -18,7 +18,7 @@ async def get_organizations_by_building(
     """Получить организации по зданию"""
     return await service.get_organizations_by_building(building_id)
 
-@router.get("/by-activity/{activity_id}")
+@router.get("/by-activity/{activity_id}", response_model=List[OrganizationResponse])
 async def get_organizations_by_activity(
     activity_id: UUID,
     service: OrganizationsService = Depends(get_service)
@@ -26,7 +26,7 @@ async def get_organizations_by_activity(
     """Получить организации по активности"""
     return await service.get_organizations_by_activity(activity_id)
 
-@router.get("/in-circle")
+@router.get("/in-circle", response_model=List[OrganizationResponse])
 async def get_organizations_in_circle(
     latitude: float = Query(..., description="Широта"),
     longitude: float = Query(..., description="Долгота"),
@@ -36,10 +36,10 @@ async def get_organizations_in_circle(
     """Получить организации в радиусе от указанной точки"""
     return await service.get_organizations_in_circle(latitude, longitude, radius)
 
-@router.get("/in-rectangle")
+@router.get("/in-rectangle", response_model=List[OrganizationResponse])
 async def get_organizations_in_rectangle(
-    center_latitude: float = Query(..., description="Широта центра"),
-    center_longitude: float = Query(..., description="Долгота центра"),
+    center_latitude: float = Query(..., description="Широта центра, например: 55.7558"),
+    center_longitude: float = Query(..., description="Долгота центра, например: 37.6176"),
     width: float = Query(..., description="Ширина в метрах"),
     height: float = Query(..., description="Высота в метрах"),
     service: OrganizationsService = Depends(get_service)
@@ -58,7 +58,7 @@ async def get_organization_by_id(
         raise HTTPException(status_code=404, detail="Organization not found")
     return organization
 
-@router.get("/by-activity-type/{activity_id}")
+@router.get("/by-activity-type/{activity_id}", response_model=List[OrganizationResponse])
 async def get_organizations_by_activity_type(
     activity_id: UUID,
     service: OrganizationsService = Depends(get_service)
