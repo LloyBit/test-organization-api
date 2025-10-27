@@ -119,7 +119,9 @@ class OrganizationsRepository:
                 .where(Organization.id == organization_id)
             )
             result = await session.execute(query)
-            return result.scalar_one_or_none()
+            organizations = result.scalars().unique().all()
+            return organizations[0] if organizations else None
+
         
     async def organizations_by_activity_type(self, activity_id: UUID):
         """Получить организации по типу деятельности с поиском по дереву деятельностей"""
@@ -139,26 +141,32 @@ class OrganizationsRepository:
                     FROM activities a
                     INNER JOIN activity_tree at ON a.parent_id = at.id
                 )
-                SELECT DISTINCT o.id, o.name, o.building_id
+                SELECT DISTINCT o.id
                 FROM organizations o
                 INNER JOIN organization_activities oa ON o.id = oa.organization_id
                 INNER JOIN activity_tree at ON oa.activity_id = at.id
             """)
             
             result = await session.execute(cte_query, {"activity_id": activity_id})
-            rows = result.fetchall()
+            organization_ids = [row.id for row in result.fetchall()]
             
-            # Преобразуем результат в объекты Organization
-            organizations = []
-            for row in rows:
-                org = Organization()
-                org.id = row.id
-                org.name = row.name
-                org.building_id = row.building_id
-                organizations.append(org)
-                
-            return organizations
-        
+            if not organization_ids:
+                return []
+            
+            # Теперь загружаем полные объекты с связанными данными
+            query = (
+                select(Organization)
+                .options(
+                    joinedload(Organization.building),
+                    joinedload(Organization.phones),
+                    joinedload(Organization.activities)
+                )
+                .where(Organization.id.in_(organization_ids))
+            )
+            
+            result = await session.execute(query)
+            return result.scalars().unique().all()
+            
     async def organization_by_name(self, name: str):
         """Получить организацию по имени"""
         async with self.db_helper.session_only() as session:
@@ -172,7 +180,8 @@ class OrganizationsRepository:
                 .where(Organization.name == name)
             )
             result = await session.execute(query)
-            return result.scalar_one_or_none()
+            organizations = result.scalars().unique().all()
+            return organizations[0] if organizations else None
 
     # Приватные методы     
     def _build_organizations_with_building_query(self):
