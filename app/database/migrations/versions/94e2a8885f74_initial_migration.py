@@ -26,7 +26,7 @@ def upgrade() -> None:
     sa.Column('id', sa.UUID(), nullable=False),
     sa.Column('name', sa.String(), nullable=False),
     sa.Column('parent_id', sa.UUID(), nullable=True),
-    sa.Column('level', sa.Integer(), nullable=False, server_default='1'),  # Добавлено поле level
+    sa.Column('level', sa.Integer(), nullable=False, server_default='1'), 
     sa.ForeignKeyConstraint(['parent_id'], ['activities.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
